@@ -1,29 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Website</title>
-
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Click Game</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<header>
-    <h1>My Interactive Website</h1>
-</header>
+<h1>⚡ Click Speed Game</h1>
+<p>Click the button as many times as you can in 10 seconds!</p>
 
-<div class="container">
-    <p id="message">Click the button to interact with the page.</p>
+<h2>Score: <span id="score">0</span></h2>
+<h2>Time Left: <span id="time">10</span></h2>
 
-    <button onclick="handleClick()">Click Me</button>
-
-    <p>Button clicked: <span id="count">0</span> times</p>
-</div>
-
-<footer>
-    <p>© 2026 My Website</p>
-</footer>
+<button id="clickButton">TAP IT NIGER</button>
+<br><br>
+<button onclick="startGame()">Start Game</button>
 
 <script src="script.js"></script>
 
