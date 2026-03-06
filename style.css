@@ -1,39 +1,27 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f6f9;
-    margin: 0;
     text-align: center;
+    background-color: #f4f6f9;
 }
 
-header {
-    background-color: #4CAF50;
-    color: white;
-    padding: 20px;
+h1 {
+    color: #333;
 }
 
-.container {
-    padding: 40px;
-}
-
-button {
+#clickButton {
+    padding: 20px 40px;
+    font-size: 24px;
     background-color: #4CAF50;
     color: white;
     border: none;
-    padding: 12px 25px;
-    font-size: 16px;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
 }
 
-button:hover {
+#clickButton:hover {
     background-color: #45a049;
 }
 
-footer {
-    background-color: #222;
-    color: white;
-    padding: 10px;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
+button {
+    margin-top: 10px;
 }
