@@ -3,23 +3,194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Click Game</title>
-<link rel="stylesheet" href="style.css">
+<title>Click Speed Game</title>
+<style>
+body{font-family:Arial;text-align:center;background:#f0f4f7;margin:0;padding:0;}
+.container{max-width:450px;margin:30px auto;padding:20px;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+input{padding:8px;margin:5px 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+button{padding:10px 20px;margin:5px;font-size:16px;cursor:pointer;border-radius:6px;border:none;background:#007bff;color:white;transition: transform 0.1s;}
+button:hover{background:#0056b3;}
+button:active{transform: scale(1.1);}
+h1,h2,h3{margin:10px 0;}
+#leaderboard{margin-top:20px;text-align:left;}
+.leaderboard-item{padding:5px 0;border-bottom:1px solid #ddd;}
+#progressContainer{width:100%;background:#ddd;height:20px;border-radius:10px;margin:10px 0;}
+#progressBar{height:100%;width:100%;background:#28a745;border-radius:10px;}
+.flash{animation: flash 0.5s ease;}
+@keyframes flash{0%{color:#28a745;}50%{color:#fff;}100%{color:#28a745;}}
+@media(max-width:500px){.container{width:95%;padding:15px;}button{width:90%;}}
+</style>
 </head>
-
 <body>
-
+<div class="container">
 <h1>⚡ Click Speed Game</h1>
+
+<!-- LOGIN AREA -->
+<div id="authSection">
+<h2>Login / Register</h2>
+<input id="username" placeholder="Username"><br>
+<input id="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Password"><br>
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+</div>
+
+<!-- GAME AREA -->
+<div id="gameSection" style="display:none;">
+<h3>Welcome, <span id="displayName"></span>!</h3>
 <p>Click the button as many times as you can in 10 seconds!</p>
 
 <h2>Score: <span id="score">0</span></h2>
 <h2>Time Left: <span id="time">10</span></h2>
+<h2>Your High Score: <span id="highscore">0</span></h2>
 
-<button id="clickButton">TAP IT NIGER</button>
-<br><br>
-<button onclick="startGame()">Start Game</button>
+<div id="progressContainer"><div id="progressBar"></div></div>
 
-<script src="script.js"></script>
+<button id="clickButton">CLICK FAST</button><br><br>
+<button onclick="startGame()">Start Game</button><br><br>
+<button onclick="logout()">Logout</button>
 
+<h3>🏆 Global Leaderboard</h3>
+<div id="leaderboard"></div>
+</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+getAuth,
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword,
+signOut,
+onAuthStateChanged,
+updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+getFirestore,
+doc,
+setDoc,
+getDoc,
+collection,
+query,
+orderBy,
+limit,
+onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// Replace these values with your Firebase project config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let score=0,time=10,timer,currentUser=null,lastClick=0;
+
+// AUTH
+window.register = async function(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  const username=document.getElementById("username").value;
+  if(!username){alert("Enter a username!"); return;}
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,password);
+    await updateProfile(cred.user,{displayName:username});
+    alert("Account created!");
+  }catch(err){alert(err.message);}
+}
+window.login=function(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  signInWithEmailAndPassword(auth,email,password).catch(err=>alert(err.message));
+}
+window.logout=function(){signOut(auth);}
+
+// GAME
+window.startGame=function(){
+  if(!currentUser) return;
+  score=0; time=10;
+  document.getElementById("score").textContent=score;
+  document.getElementById("time").textContent=time;
+  updateProgressBar(time);
+  timer=setInterval(()=>{
+    time--;
+    document.getElementById("time").textContent=time;
+    updateProgressBar(time);
+    if(time<=0){
+      clearInterval(timer);
+      saveHighScore(currentUser,score);
+    }
+  },1000);
+}
+document.getElementById("clickButton").onclick=function(){
+  const now=Date.now();
+  if(now-lastClick<50) return; // anti-cheat
+  lastClick=now;
+  if(time>0){
+    score++;
+    document.getElementById("score").textContent=score;
+    this.classList.add("flash");
+    setTimeout(()=>this.classList.remove("flash"),100);
+  }
+}
+
+// PROGRESS BAR
+function updateProgressBar(t){
+  const bar=document.getElementById("progressBar");
+  bar.style.width=(t/10*100)+"%";
+}
+
+// FIRESTORE
+async function saveHighScore(user,score){
+  if(!user) return;
+  const ref=doc(db,"users",user.uid);
+  const snap=await getDoc(ref);
+  let prev=0;
+  if(snap.exists()) prev=snap.data().highscore||0;
+  if(score>prev){
+    await setDoc(ref,{highscore:score,username:user.displayName||user.email});
+    document.getElementById("highscore").textContent=score;
+  }
+}
+async function loadHighScore(user){
+  const ref=doc(db,"users",user.uid);
+  const snap=await getDoc(ref);
+  if(snap.exists()) document.getElementById("highscore").textContent=snap.data().highscore||0;
+}
+
+// REAL-TIME LEADERBOARD
+function loadLeaderboardRealtime(){
+  const q=query(collection(db,"users"),orderBy("highscore","desc"),limit(10));
+  onSnapshot(q,snapshot=>{
+    const lb=document.getElementById("leaderboard");
+    lb.innerHTML="";
+    snapshot.forEach(doc=>{
+      const data=doc.data();
+      lb.innerHTML+=`<div class="leaderboard-item">${data.username}: ${data.highscore}</div>`;
+    });
+  });
+}
+
+// LOGIN STATE
+onAuthStateChanged(auth,user=>{
+  if(user){
+    currentUser=user;
+    document.getElementById("authSection").style.display="none";
+    document.getElementById("gameSection").style.display="block";
+    document.getElementById("displayName").textContent=user.displayName||user.email;
+    loadHighScore(user);
+    loadLeaderboardRealtime();
+  }else{
+    document.getElementById("authSection").style.display="block";
+    document.getElementById("gameSection").style.display="none";
+    currentUser=null;
+  }
+});
+</script>
 </body>
 </html>
