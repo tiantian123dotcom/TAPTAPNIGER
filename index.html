@@ -77,13 +77,23 @@ limit,
 onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Replace these values with your Firebase project config
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBptwabM2JEU_5ia2w1YoMiALgHRqCroCY",
+  authDomain: "nigergame-677d3.firebaseapp.com",
+  projectId: "nigergame-677d3",
+  storageBucket: "nigergame-677d3.firebasestorage.app",
+  messagingSenderId: "686843367455",
+  appId: "1:686843367455:web:e32cb6273a7a2c66c7452a"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
